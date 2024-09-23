@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -41,6 +42,37 @@ public class TodoService {
         log.info("result of Entity userId : {}", userId);
 
         return todoRepository.findByUserId(userId);
+    }
+
+    //update
+    public List<TodoEntity> update(final TodoEntity todoEntity){
+        // 1. 엔티티가 유효한지 확인.
+        validate(todoEntity);
+
+        // 2. 넘겨받은 엔티티 id를 이용해 TodoEntity를 가져옴. 존재하지 않는 엔티티는 업데이트할 수 없기 떄문.
+        final Optional<TodoEntity> original = todoRepository.findById(todoEntity.getId());
+
+        /* 아래와 동일하다.
+        if(original.ifPresent()){
+            final TodoEntity entity = original.get();
+            entity.setTitle(todoEntity.getTitle());
+            entity.setDone(todoEntity.isDone());
+
+            todoRepository.save(entity);
+        }
+         */
+
+        original.ifPresent(todo -> {
+            // 3. 반환된 TodoEntity가 존재하면 새 entity의 값으로 덮어 씌운다.
+            todo.setTitle(todoEntity.getTitle());
+            todo.setDone(todoEntity.isDone());
+
+            // 4. DB에 새 값을 저장
+            todoRepository.save(todo);
+        });
+
+        // 5. 위에서 정의한 retrieve 메서드로 유저의 모든 Todo리스트를 리턴
+        return retrieve(todoEntity.getUserId());
     }
 
 
