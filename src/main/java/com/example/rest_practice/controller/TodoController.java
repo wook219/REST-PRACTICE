@@ -93,4 +93,30 @@ public class TodoController {
 
         return ResponseEntity.ok().body(response);
     }
+
+    @PutMapping
+    public ResponseEntity<?> updateTodo(@RequestBody TodoDTO todoDTO){
+        String temporaryUserId = "temporary-user";
+
+        // 1. DTO -> Entity
+        TodoEntity todoEntity = TodoDTO.toEntity(todoDTO);
+
+        // 2. userId 초기화
+        todoEntity.setUserId(temporaryUserId);
+
+        // 3. service를 이용해 entity update
+        List<TodoEntity> entities = todoService.update(todoEntity);
+
+        // 4. 스트림을 이용해 Entity -> DTO
+        List<TodoDTO> todoDTOS = entities.stream()
+                .map(TodoDTO::new)
+                .collect(Collectors.toList());
+
+        // 5. ResponseDTO 초기화
+        ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder()
+                .data(todoDTOS)
+                .build();
+
+        return ResponseEntity.ok().body(response);
+    }
 }
