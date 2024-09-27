@@ -3,6 +3,7 @@ package com.example.rest_practice.controller;
 import com.example.rest_practice.dto.ResponseDTO;
 import com.example.rest_practice.dto.UserDTO;
 import com.example.rest_practice.model.UserEntity;
+import com.example.rest_practice.security.TokenProvider;
 import com.example.rest_practice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    TokenProvider tokenProvider;
+
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO){
         try{
@@ -31,6 +35,7 @@ public class UserController {
                     .username(userDTO.getUsername())
                     .password(userDTO.getPassword())
                     .build();
+            System.out.println(user.toString());
 
             UserEntity registeredUser = userService.create(user);
 
@@ -58,9 +63,11 @@ public class UserController {
         );
 
         if(user != null){
+            final String token = tokenProvider.create(user);
             final UserDTO responseUserDTO = UserDTO.builder()
                     .username(user.getUsername())
                     .id(userDTO.getId())
+                    .token(token)
                     .build();
 
             return ResponseEntity.ok().body(responseUserDTO);
